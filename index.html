@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chef Bimby AI - O seu Chef Master 20+</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel Standalone para transpilação JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+    .animate-slideUp { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- Componentes de Ícones SVG (Lucide Replacements) ---
+    const Icon = ({ path, className = "w-5 h-5", ...props }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" {...props}>
+        {path}
+      </svg>
+    );
+
+    const ChefHat = (p) => <Icon {...p} path={<><path d="M6 13.8a4.5 4.5 0 1 1 2.61-8.33A4.5 4.5 0 0 1 16 6a4.5 4.5 0 0 1 2.39 7.8" /><path d="M6 13.8V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5.2" /><path d="M6 17h12" /></>} />;
+    const Utensils = (p) => <Icon {...p} path={<><path d="M18 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /></>} />;
+    const Sparkles = (p) => <Icon {...p} path={<><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></>} />;
+    const BookMarked = (p) => <Icon {...p} path={<><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" /><path d="M10 2v8l2.5-1.5L15 10V2" /></>} />;
+    const Settings = (p) => <Icon {...p} path={<><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" /><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" /></>} />;
+    const Share2 = (p) => <Icon {...p} path={<><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></>} />;
+    const RotateCcw = (p) => <Icon {...p} path={<><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></>} />;
+    const Save = (p) => <Icon {...p} path={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></>} />;
+    const Clock = (p) => <Icon {...p} path={<><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>} />;
+    const Users = (p) => <Icon {...p} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>} />;
+    const Flame = (p) => <Icon {...p} path={<><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></>} />;
+    const Search = (p) => <Icon {...p} path={<><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></>} />;
+    const Trash2 = (p) => <Icon {...p} path={<><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></>} />;
+    const Soup = (p) => <Icon {...p} path={<><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" /><path d="M7 10V7" /><path d="M12 10V5" /><path d="M17 10V7" /></>} />;
+    const Salad = (p) => <Icon {...p} path={<><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" /><path d="M12 3v4" /><path d="M8 6l2 2" /><path d="M16 6l-2 2" /></>} />;
+    const UtensilsCrossed = (p) => <Icon {...p} path={<><path d="m16 2-4 4 4 4" /><path d="M2 16l4-4 4 4" /><path d="M10 6 2 14" /><path d="m14 10 8 8" /></>} />;
+    const Cake = (p) => <Icon {...p} path={<><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8" /><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1" /><path d="M2 21h20" /></>} />;
+    const Info = (p) => <Icon {...p} path={<><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></>} />;
+    const Award = (p) => <Icon {...p} path={<><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></>} />;
+    const Zap = (p) => <Icon {...p} path={<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></>} />;
+    const Check = (p) => <Icon {...p} path={<><polyline points="20 6 9 17 4 12" /></>} />;
+    const Globe = (p) => <Icon {...p} path={<><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /></>} />;
+    const Tapas = (p) => <Icon {...p} path={<><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /><path d="M3 12h18" /><circle cx="12" cy="12" r="4" /></>} />;
+    const Pizza = (p) => <Icon {...p} path={<><path d="M15 11h.01" /><path d="M11 15h.01" /><path d="M16 16h.01" /><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16Z" /><path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4" /></>} />;
+
+    // Categorias de receitas
+    const CATEGORIES = [
+      { id: 'sopas', label: 'Sopas', icon: Soup, color: 'from-amber-500 to-orange-600' },
+      { id: 'entradas', label: 'Entradas', icon: Salad, color: 'from-emerald-500 to-teal-600' },
+      { id: 'pratos', label: 'Pratos Principais', icon: UtensilsCrossed, color: 'from-rose-500 to-red-600' },
+      { id: 'sobremesas', label: 'Sobremesas', icon: Cake, color: 'from-purple-500 to-indigo-600' },
+      { id: 'tapas', label: 'Tapas Espanholas', icon: Tapas, color: 'from-yellow-500 to-red-500' },
+      { id: 'italiana', label: 'Cozinha Italiana', icon: Pizza, color: 'from-emerald-600 to-rose-600' },
+    ];
+
+    const INITIAL_SAVED_RECIPES = [
+      {
+        id: 'demo-1',
+        title: 'Creme de Coentros com Ovo Escalfado',
+        category: 'sopas',
+        model: 'TM7',
+        prepTime: '25 min',
+        servings: '4 pessoas',
+        difficulty: 'Fácil',
+        ingredients: ['500g de batata', '1 xuchu', '1 cebola', '2 dentes de alho', '1 molho de coentros frescos', '50g azeite', '800g água', 'Sal q.b.', '4 ovos'],
+        steps: [
+          { step: 1, action: 'Coloque a cebola, alho, azeite e metade dos coentros no copo.', min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Pique tudo minuciosamente.' },
+          { step: 2, action: 'Refogue os temperos para libertar os aromas.', min: '5 min', temp: '120°C (100°C na TM31)', speed: 'Velocidade 1', notes: 'Na TM31 use temperatura 100°C.' },
+          { step: 3, action: 'Adicione as batatas, o xuchu, a água e o sal. Programe a cozedura.', min: '20 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Pode colocar os ovos na Varoma para escalfar ao mesmo tempo.' },
+          { step: 4, action: 'Junte o restante molho de coentros frescos e triture o creme suavemente.', min: '1 min', temp: '-', speed: 'Velocidade 5-10 progressiva', notes: 'Triture gradualmente para maior segurança térmica.' }
+        ],
+        chefTip: 'Utilize a borboleta na TM7 se quiser escalfar os ovos diretamente no líquido da sopa no final!'
+      },
+      {
+        id: 'demo-2',
+        title: 'Mousse de Chocolate Aveludada Express',
+        category: 'sobremesas',
+        model: 'TM31',
+        prepTime: '15 min (+ 2h frio)',
+        servings: '6 pessoas',
+        difficulty: 'Fácil',
+        ingredients: ['200g chocolate culinário (70%)', '6 ovos M', '100g açúcar', '50g manteiga sem sal', '1 pitada de sal'],
+        steps: [
+          { step: 1, action: 'Coloque o chocolate em pedaços no copo e pulverize.', min: '10 seg', temp: '-', speed: 'Velocidade 9', notes: 'Garante que derrete uniformemente.' },
+          { step: 2, action: 'Junte a manteiga e derreta o chocolate suavemente.', min: '3 min', temp: '50°C', speed: 'Velocidade 2', notes: 'Aqueça suavemente sem queimar.' },
+          { step: 3, action: 'Adicione as gemas e o açúcar.', min: '2 min', temp: '50°C', speed: 'Velocidade 3', notes: 'Cria uma emulsão cremosa.' },
+          { step: 4, action: 'Insira a borboleta com as claras e a pitada de sal num copo limpo e monte em castelo.', min: '6 min', temp: '-', speed: 'Velocidade 3.5', notes: 'Misture depois delicadamente com a espátula ao creme de chocolate.' }
+        ],
+        chefTip: 'Sirva com flor de sal e raspas de laranja para um toque digno de restaurante Michelin.'
+      }
+    ];
+
+    // Biblioteca com 4 conceitos totalmente distintos por categoria para rotação contínua
+    const CULINARY_VARIATIONS = {
+      sopas: [
+        {
+          style: 'creme',
+          titleGen: (mainIng) => `Velouté Aveludado de ${mainIng} com Azeite Aromático`,
+          prepTime: '22 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Pique a base aromática (cebola, alho e parte de ${mainIng}) com o azeite.`, min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Corte fino e homogéneo.' },
+            { step: 2, action: 'Refogue com o copo de medida para concentrar o aroma.', min: '5 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Dourado uniforme.' },
+            { step: 3, action: `Adicione a água e o sal. Cozinhe em temperatura Varoma.`, min: '18 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Cozedura dos legumes até ficarem macios.' },
+            { step: 4, action: 'Emulsione com um fio de azeite extra virgem fresco.', min: '1 min', temp: '-', speed: 'Velocidade 5 a 10 progressiva', notes: 'Gera uma textura brilhante e sedosa.' }
+          ],
+          chefTip: 'Para um brilho de alta gastronomia, adicione 1 colher de manteiga gelada ou azeite virgem cru mesmo antes de emulsionar na velocidade 10.'
+        },
+        {
+          style: 'rustica',
+          titleGen: (mainIng) => `Sopa Campestre Rica com Base de ${mainIng} e Ervas`,
+          prepTime: '28 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Coloque metade de ${mainIng} cortado em cubos maiores no cesto ou na Varoma.`, min: '30 seg', temp: '-', speed: 'Manual', notes: 'Mantém textura nos legumes sem triturar.' },
+            { step: 2, action: 'No copo, triture a base de cebola, alho, azeite e os restantes ingredientes com água.', min: '15 seg', temp: '-', speed: 'Velocidade 7', notes: 'Cria o caldo aromático.' },
+            { step: 3, action: 'Cozinhe o caldo no copo enquanto os cubos de legumes cozem no cesto.', min: '20 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Preserva a integridade e cor dos legumes.' },
+            { step: 4, action: 'Junte os legumes inteiros cozidos ao caldo aromático e envolva suavemente.', min: '10 seg', temp: '-', speed: 'Colher Inversa', notes: 'Sopa com textura rústica e reconfortante.' }
+          ],
+          chefTip: 'Salpique com sementes de abóbora tostadas ou croutons de pão alentejano na hora de servir.'
+        },
+        {
+          style: 'caldo-aromatico',
+          titleGen: (mainIng) => `Consommé de Legumes e ${mainIng} com Infusão Cítrica`,
+          prepTime: '20 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Coloque água, as aromáticas, casca fina de limão e ${mainIng} no copo.`, min: '10 seg', temp: '-', speed: 'Velocidade 3', notes: 'Mistura dos aromáticos para infusão.' },
+            { step: 2, action: 'Programe cozedura em infusão lenta para extrair aromas e claridade.', min: '15 min', temp: '90°C', speed: 'Velocidade 1', notes: 'Temperatura controlada sem ferver violentamente.' },
+            { step: 3, action: 'Coe pelo cesto da Bimby sobre uma taça para obter um caldo translúcido de chef.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Separe o caldo fino límpido.' },
+            { step: 4, action: 'Retorne o caldo límpido ao copo, retifique o tempero e sirva fumegante.', min: '2 min', temp: '100°C', speed: 'Velocidade 1', notes: 'Servir com folhas verdes frescas no fundo do prato.' }
+          ],
+          chefTip: 'Adicione duas gotas de sumo de lima e pimenta rosa moída para cortar o perfil doce natural dos legumes.'
+        },
+        {
+          style: 'creme-tostado',
+          titleGen: (mainIng) => `Creme Assado de ${mainIng} Caramelizado no Copo`,
+          prepTime: '25 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Corte ${mainIng} e cebola em pedaços e doure intensamente com azeite.`, min: '8 min', temp: isTM7 ? '120°C' : 'Varoma', speed: 'Velocidade 1', notes: 'Caramelização inicial para notas torradas profundas.' },
+            { step: 2, action: 'Adicione um cálice de vinho branco ou caldo de legumes para libertar os caramelos do fundo.', min: '2 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Deglacear o fundo do copo.' },
+            { step: 3, action: 'Junte a água necessária e coza com o copo fechado.', min: '12 min', temp: '100°C', speed: 'Velocidade 1', notes: 'Cozimento rápido.' },
+            { step: 4, action: 'Triture vigorosamente até atingir um acabamento espelho de alta textura.', min: '1 min 30 seg', temp: '-', speed: 'Velocidade 5-10 progressiva', notes: 'Textura extra densa.' }
+          ],
+          chefTip: 'Finalize com um fio de natas frescas ou iogurte grego batido e noz-moscada ralada no momento.'
+        }
+      ],
+      pratos: [
+        {
+          style: 'estufado-lento',
+          titleGen: (mainIng) => `Estufado Suculento de ${mainIng} em Molho Reduzido`,
+          prepTime: '30 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque a cebola, dentes de alho, azeite e polpa de tomate no copo.', min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Pique a base do refogado.' },
+            { step: 2, action: 'Refogue sem o copo de medida para concentrar os sucos.', min: '5 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Base aromática tradicional.' },
+            { step: 3, action: `Adicione ${mainIng}, louro, vinho branco, sal e pimenta.`, min: '20 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Rotação Inversa', notes: isTM7 ? 'Ative rotação inversa.' : 'Ligue o botão de inversão de lâminas na TM31.' },
+            { step: 4, action: 'Retifique a espessura do molho com a tampa aberta e cesto sobre o bocal.', min: '3 min', temp: 'Varoma', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Redução e brilho do molho.' }
+          ],
+          chefTip: 'Nunca use velocidade superior a Colher Inversa para que a proteína e os legumes não se desfaçam durante a cozedura.'
+        },
+        {
+          style: 'risotto-cremoso',
+          titleGen: (mainIng) => `Arroz Cremoso de Assinatura com ${mainIng} e Queijo Curado`,
+          prepTime: '26 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Pique o queijo em pedaços e reserve para a manteiga final.', min: '10 seg', temp: '-', speed: 'Velocidade 8', notes: 'Ralado instantâneo.' },
+            { step: 2, action: `Pique chalota e azeite no copo. Adicione o arroz e parte de ${mainIng} e nacarate.`, min: '3 min', temp: isTM7 ? '120°C' : '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Fritar os grãos de arroz até ficarem translúcidos.' },
+            { step: 3, action: 'Junte o caldo a ferver e vinho branco. Cozinhe com tampa colocada.', min: '14 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Libertação do amido em rotação contínua.' },
+            { step: 4, action: 'Adicione manteiga e o queijo ralado reservado. Deixe repousar 2 min tapado.', min: '2 min', temp: '-', speed: 'Repouso no copo', notes: 'Mantecatura clássica italiana.' }
+          ],
+          chefTip: 'Sirva de imediato no prato pré-aquecido; um arroz caldoso/risotto na Bimby continua a absorver molho a cada minuto!'
+        },
+        {
+          style: 'vapor-varoma',
+          titleGen: (mainIng) => `${mainIng} a Vapor Suave na Varoma com Molho de Ervas Frescas`,
+          prepTime: '25 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Disponha ${mainIng} e acompanhamentos no recipiente e tabuleiro Varoma untados.`, min: '2 min', temp: '-', speed: 'Manual', notes: 'Deixe algumas ranhuras desimpedidas para o vapor circular.' },
+            { step: 2, action: 'No copo, coloque 700g de água com cascas aromáticas e especiarias. Coloque a Varoma.', min: '20 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Cozedura a vapor a 100% de nutrientes.' },
+            { step: 3, action: 'Retire a Varoma, esvazie a água restante do copo e coloque azeite, sumo de limão e ervas.', min: '30 seg', temp: '-', speed: 'Velocidade 4', notes: 'Emulsão rápida para o molho de topo.' },
+            { step: 4, action: `Regue ${mainIng} com o molho emulsionado e flor de sal ao empratar.`, min: '30 seg', temp: '-', speed: 'Manual', notes: 'Empratamento de alta cozinha leve e saudável.' }
+          ],
+          chefTip: 'Forre o tabuleiro da Varoma com papel vegetal humedecido para conservar todos os sucos nobres da carne ou peixe.'
+        },
+        {
+          style: 'massa-emulsionada',
+          titleGen: (mainIng) => `Massa Salteada em Molho Aveludado de ${mainIng} e Parmesão`,
+          prepTime: '20 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque água e sal no copo e leve a ferver.', min: '8 min', temp: '100°C', speed: 'Velocidade 1', notes: 'Ferver água rápida.' },
+            { step: 2, action: 'Insira a massa pelo bocal e coza al dente. Escorra usando a Varoma e reserve.', min: '8 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Manter a textura firme.' },
+            { step: 3, action: `No copo, prepare o molho: coloque azeite, alho e ${mainIng}. Salteie suavemente.`, min: '4 min', temp: isTM7 ? '120°C' : '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Salteado rápido aromático.' },
+            { step: 4, action: 'Junte a massa cozida e envolva com 50g da água da cozedura reservada.', min: '1 min', temp: '90°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Emulsão cremosa perfeita.' }
+          ],
+          chefTip: 'A água de cozedura da massa rica em amido é o truque de restaurante para o molho agarrar na perfeição.'
+        }
+      ],
+      entradas: [
+        {
+          style: 'pate-untoso',
+          titleGen: (mainIng) => `Pâté Cremoso de ${mainIng} com Toque de Especiarias`,
+          prepTime: '10 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Coloque no copo ${mainIng}, queijo creme/maionese e ervas frescas.`, min: '15 seg', temp: '-', speed: 'Velocidade 5', notes: 'Trituração inicial.' },
+            { step: 2, action: 'Com a espátula baixe o que ficou nas paredes do copo.', min: '10 seg', temp: '-', speed: 'Manual', notes: 'Aproveitamento uniforme.' },
+            { step: 3, action: 'Adicione umas gotas de limão, pimenta moída e azeite. Emulsione.', min: '25 seg', temp: '-', speed: 'Velocidade 4', notes: 'Textura cremosa espalhavel.' }
+          ],
+          chefTip: 'Sirva com tostas rústicas de centeio ou palitos de legumes frescos como aipo e cenoura.'
+        },
+        {
+          style: 'tortilha-vapor',
+          titleGen: (mainIng) => `Frittata Fofa de ${mainIng} Cozinhada na Varoma`,
+          prepTime: '22 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Pique os vegetais e ${mainIng} no copo.`, min: '5 seg', temp: '-', speed: 'Velocidade 4', notes: 'Corte rápido para recheio.' },
+            { step: 2, action: 'Bata os ovos com sal, pimenta e uma noz de manteiga ou natas.', min: '15 seg', temp: '-', speed: 'Velocidade 3.5', notes: 'Mistura arejada dos ovos.' },
+            { step: 3, action: 'Coloque a mistura num pirex ou tabuleiro Varoma com papel vegetal. Deite 500g água no copo.', min: '18 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Cozedura uniforme a vapor suave.' }
+          ],
+          chefTip: 'A cozedura da tortilha a vapor na Varoma garante uma humidade e fofura impossíveis de obter na frigideira seca.'
+        },
+        {
+          style: 'dip-quente',
+          titleGen: (mainIng) => `Dip Quente Cremoso de ${mainIng} com Queijo Gratinado`,
+          prepTime: '15 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Pique o alho, azeite e ${mainIng} no copo.`, min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Trituração rápida.' },
+            { step: 2, action: 'Refogue suavemente para libertar aroma.', min: '3 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Saltear aromatizantes.' },
+            { step: 3, action: 'Adicione natas ou requeijão e envolva até fundir.', min: '4 min', temp: '90°C', speed: 'Velocidade 2', notes: 'Creme espesso e quente.' }
+          ],
+          chefTip: 'Deite numa taça de barro, cubra com queijo ralado e leve 5 min ao grill do forno para gratinar dourado.'
+        },
+        {
+          style: 'salada-morna',
+          titleGen: (mainIng) => `Tártaro Rápido / Salada Morna de ${mainIng} com Vinagrete Francês`,
+          prepTime: '12 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'No copo limpo, adicione azeite, mostarda Dijon, vinagre de sidra e sal.', min: '30 seg', temp: '-', speed: 'Velocidade 4', notes: 'Emulsão perfeita de vinagrete.' },
+            { step: 2, action: `Adicione ${mainIng} cortado em cubos regulares e ervas frescas ao copo.`, min: '4 seg', temp: '-', speed: 'Velocidade 3.5 com Rotação Inversa', notes: 'Envolver sem esmagar.' },
+            { step: 3, action: 'Disponha num aro de empratamento para apresentação de restaurante.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Montagem limpa e elegante.' }
+          ],
+          chefTip: 'Finalize com sementes de sésamo tostadas e flor de sal no topo de cada porção.'
+        }
+      ],
+      sobremesas: [
+        {
+          style: 'mousse-aveludada',
+          titleGen: (mainIng) => `Mousse Leve e Aveludada de ${mainIng} com Toque de Baunilha`,
+          prepTime: '15 min (+ 2h frio)',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque a borboleta nas lâminas bem secas. Adicione as claras ou natas.', min: '3 min', temp: '-', speed: 'Velocidade 3.5', notes: 'Bater em castelo bem firme.' },
+            { step: 2, action: `Retire a borboleta. No copo, emulsione ${mainIng} com o açúcar/leite condensado.`, min: '1 min', temp: '-', speed: 'Velocidade 4', notes: 'Creme denso e brilhante.' },
+            { step: 3, action: 'Envolva as claras/natas reservadas com a espátula delicadamente em movimentos circulares.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Preserva as bolhas de ar para leveza máxima.' }
+          ],
+          chefTip: 'Mantenha as natas ou claras no congelador durante 10 minutos antes de bater para montar com firmeza máxima.'
+        },
+        {
+          style: 'pudim-vapor',
+          titleGen: (mainIng) => `Flan Suave de ${mainIng} ao Vapor na Varoma`,
+          prepTime: '35 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Coloque no copo leite, ovos, açúcar e ${mainIng}. Misture sem criar espuma excessiva.`, min: '40 seg', temp: '-', speed: 'Velocidade 3.5', notes: 'Homogeneização completa.' },
+            { step: 2, action: 'Verta numa forma de pudim caramelizada e tape com folha de alumínio.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Protege contra a condensação de água.' },
+            { step: 3, action: 'Coloque 1000g de água no copo, coloque a Varoma com a forma e cozinhe ao vapor.', min: '30 min', temp: 'Varoma', speed: 'Velocidade 1', notes: 'Cozedura a vapor sem queimar a base.' }
+          ],
+          chefTip: 'Deixe arrefecer completamente no frigorífico durante a noite antes de desenformar para desenformar perfeito.'
+        },
+        {
+          style: 'gelado-express',
+          titleGen: (mainIng) => `Gelado Aveludado Express de ${mainIng} com Espátula`,
+          prepTime: '5 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque açúcar no copo e pulverize para obter açúcar em pó fino.', min: '15 seg', temp: '-', speed: 'Velocidade 10', notes: 'Açúcar em pó ultrafino.' },
+            { step: 2, action: `Adicione ${mainIng} (congelado em pedaços pequenos) e sumo de limão ou clara de ovo.`, min: '40 seg', temp: '-', speed: 'Velocidade 5 a 10', notes: 'Ajude com a espátula através do bocal.' },
+            { step: 3, action: 'Insira a borboleta nas lâminas e bata para aerar o gelado como no restaurante.', min: '1 min', temp: '-', speed: 'Velocidade 3.5', notes: 'Criação de textura cremosa idêntica a geladaria italiana.' }
+          ],
+          chefTip: 'Sirva de imediato em taças geladas com uma folha de hortelã ou raspas de lima.'
+        },
+        {
+          style: 'creme-forno',
+          titleGen: (mainIng) => `Creme Queimado de Assinatura com Infusão de ${mainIng}`,
+          prepTime: '18 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Insira a borboleta. Junte gemas, açúcar, leite, natas e ${mainIng}.`, min: '12 min', temp: '90°C', speed: 'Velocidade 2', notes: 'Cozimento de creme sem deixar ferver.' },
+            { step: 2, action: 'Verta de imediato em tacinhas de barro baixas.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Distribuição em doses individuais.' },
+            { step: 3, action: 'Polvilhe com açúcar mascavado à superfície e queime com maçarico de cozinha.', min: '2 min', temp: '-', speed: 'Manual', notes: 'Casquinha de caramelo crocante irresistível.' }
+          ],
+          chefTip: 'O controlo a 90°C exatos na Bimby impede que as gemas cozam em grumos, garantindo um creme liso de pastelaria fina.'
+        }
+      ],
+      tapas: [
+        {
+          style: 'croquetas-cremosas',
+          titleGen: (mainIng) => `Croquetas Espanholas Cremosas de ${mainIng} com Béchamel Fino`,
+          prepTime: '25 min (+ frio)',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Pique a base de ${mainIng} e cebola no copo com o azeite/manteiga.`, min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Corte fino para recheio homogéneo.' },
+            { step: 2, action: 'Refogue para libertar todos os aromas e dourar levemente.', min: '4 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Dourado aromático.' },
+            { step: 3, action: 'Junte a farinha e toste-a com a gordura.', min: '3 min', temp: '100°C', speed: 'Velocidade 2', notes: 'Cozinhar o roux para não saber a farinha crua.' },
+            { step: 4, action: 'Adicione leite morno, noz-moscada e sal. Cozinhe o béchamel aveludado.', min: '8 min', temp: '90°C', speed: 'Velocidade 4', notes: 'Creme denso e sedoso. Deixe arrefecer num prato antes de moldar e fritar.' }
+          ],
+          chefTip: 'A velocidade 4 a 90°C na Bimby garante um béchamel espanhol 100% liso sem qualquer grumo.'
+        },
+        {
+          style: 'tortilla-espanhola',
+          titleGen: (mainIng) => `Tortilla Española Autêntica Jugosa com Toque de ${mainIng}`,
+          prepTime: '22 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: `Coloque cebola, azeite e ${mainIng} no copo e refogue suavemente.`, min: '5 min', temp: isTM7 ? '120°C' : '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Confitar sem queimar.' },
+            { step: 2, action: 'Insira a borboleta. Adicione batatas laminadas finas e cozinhe em azeite.', min: '14 min', temp: 'Varoma', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Batata tenra e translúcida.' },
+            { step: 3, action: 'Junte os ovos batidos com uma pitada de sal e envolva.', min: '10 seg', temp: '-', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Mistura uniforme.' },
+            { step: 4, action: 'Deite numa frigideira quente apenas 1 min de cada lado para manter o centro jugoso.', min: '2 min', temp: '-', speed: 'Manual', notes: 'Finalização rápida clássica de Madrid.' }
+          ],
+          chefTip: 'A rotação inversa evita desfazer as batatas, mantendo a consistência e humidade da autêntica tortilla de taberna.'
+        },
+        {
+          style: 'al-ajillo',
+          titleGen: (mainIng) => `Cazuela al Ajillo de ${mainIng} com Azeite Picante e Pimentón`,
+          prepTime: '12 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Pique dentes de alho abundantes e malagueta fresca no copo.', min: '4 seg', temp: '-', speed: 'Velocidade 6', notes: 'Corte rápido para libertação de sabor.' },
+            { step: 2, action: 'Adicione 60g de azeite extra virgem e refogue.', min: '3 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Aromatização intensa do azeite.' },
+            { step: 3, action: `Junte ${mainIng}, pimentón dulce e um golpe de xerez ou vinho branco.`, min: '4 min', temp: 'Varoma', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Salteado rápido em alta temperatura.' },
+            { step: 4, action: 'Salpique com salsa picada e sirva a borbulhar com pão rústico.', min: '30 seg', temp: '-', speed: 'Manual', notes: 'Empratamento típico em caçarola de barro.' }
+          ],
+          chefTip: 'O azeite aromático restante é ouro líquido: sirva com fatias grossas de pão para mergulhar.'
+        },
+        {
+          style: 'bravas-alioli',
+          titleGen: (mainIng) => `Patatas Bravas com Alioli Caseiro e Salsa Brava de ${mainIng}`,
+          prepTime: '18 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'No copo seco prepare o Alioli: triture alho, sal e gema. Emulsione com o azeite pelo bocal.', min: '2 min', temp: '-', speed: 'Velocidade 4', notes: 'Emulsão cremosa e densa. Reserve.' },
+            { step: 2, action: `No copo limpo prepare o molho Bravo com azeite, pimentón, tomate e ${mainIng}.`, min: '6 min', temp: '100°C', speed: 'Velocidade 2', notes: 'Molho apurado e picante.' },
+            { step: 3, action: 'Triture o molho bravo até ficar completamente aveludado.', min: '30 seg', temp: '-', speed: 'Velocidade 8', notes: 'Textura brilhante e untosa.' },
+            { step: 4, action: 'Sirva as batatas douradas cobertas com ambos os molhos artesanais.', min: '1 min', temp: '-', speed: 'Manual', notes: 'Apresentação clássica de tapeo espanhol.' }
+          ],
+          chefTip: 'Verter o azeite fio a fio sobre a tampa com o copinho de medida colocado garante um Alioli emulsionado sem deslaçar.'
+        }
+      ],
+      italiana: [
+        {
+          style: 'risotto-mantecato',
+          titleGen: (mainIng) => `Risotto Tradizionale Cremoso de ${mainIng} com Mantecatura de Parmesão`,
+          prepTime: '24 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Rale o queijo Parmigiano Reggiano no copo seco.', min: '10 seg', temp: '-', speed: 'Velocidade 10', notes: 'Queijo ralado na hora finíssimo. Reserve.' },
+            { step: 2, action: `Pique chalota e azeite. Adicione o arroz Carnaroli/Arbório e ${mainIng} e toste (tostatura).`, min: '3 min', temp: isTM7 ? '120°C' : '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Tostar até os grãos ficarem perolados.' },
+            { step: 3, action: 'Adicione o vinho branco e depois o caldo a ferver. Cozinhe sem tampa medidora.', min: '13 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Libertação contínua de amido.' },
+            { step: 4, action: 'Mantecatura: incorpore uma noz de manteiga gelada e o queijo ralado. Repouse 1 min.', min: '1 min', temp: '-', speed: 'Repouso', notes: 'Criação da famosa textura all\'onda italiana.' }
+          ],
+          chefTip: 'Utilize sempre manteiga gelada na mantecatura: o choque térmico produz a emulsão perfeita dos deuses italianos.'
+        },
+        {
+          style: 'ragu-lento',
+          titleGen: (mainIng) => `Ragù Lento alla Bolognese de ${mainIng} com Aromas do Mediterrâneo`,
+          prepTime: '35 min',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Prepare o soffritto: pique cenoura, aipo, cebola e azeite no copo.', min: '5 seg', temp: '-', speed: 'Velocidade 5', notes: 'Base aromática clássica tricolor.' },
+            { step: 2, action: 'Refogue pacientemente para adocicar os vegetais.', min: '5 min', temp: isTM7 ? '120°C' : '100°C', speed: 'Velocidade 1', notes: 'Soffritto dourado.' },
+            { step: 3, action: `Junte ${mainIng}, vinho tinto, polpa de tomate San Marzano, sal e pimenta.`, min: '25 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Cozedura lenta apurada sem desfazer a carne.' },
+            { step: 4, action: 'Finalize com um fio de leite para equilibrar a acidez natural do tomate.', min: '2 min', temp: '90°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Segredo dos mestres da Emília-Romanha.' }
+          ],
+          chefTip: 'O toque de leite aveluda a textura do molho e elimina qualquer acidez sem necessidade de adicionar açúcar.'
+        },
+        {
+          style: 'pesto-alla-genovese',
+          titleGen: (mainIng) => `Massa al Dente com Pesto Fresco de Manjericão e ${mainIng}`,
+          prepTime: '15 min',
+          difficulty: 'Fácil',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque no copo folhas frescas de manjericão, pinhões, alho, queijo e azeite virgem extra.', min: '20 seg', temp: '-', speed: 'Velocidade 7', notes: 'Trituração fria rápida para não oxidar as folhas.' },
+            { step: 2, action: 'Com a espátula baixe os ingredientes e emulsione novamente.', min: '10 seg', temp: '-', speed: 'Velocidade 4', notes: 'Molho verde vivo e aveludado. Reserve.' },
+            { step: 3, action: 'Coloque 1000g de água com sal no copo e leve a ferver.', min: '10 min', temp: '100°C', speed: 'Velocidade 1', notes: 'Água a ferver abundante.' },
+            { step: 4, action: `Insira a massa pelo bocal. Escorra, envolva ${mainIng} e o pesto com 2 colheres da água de cozedura.`, min: '8 min', temp: '100°C', speed: isTM7 ? 'Colher Inversa' : 'Velocidade Colher / Inversa', notes: 'Emulsão brilhante e perfumada.' }
+          ],
+          chefTip: 'Nunca aqueça o pesto no copo: adicione-o cru à massa acabada de escorrer para preservar o aroma fresco e verde vivo.'
+        },
+        {
+          style: 'focaccia-rustica',
+          titleGen: (mainIng) => `Focaccia Rústica Aromática com Alecrim, Azeite e ${mainIng}`,
+          prepTime: '20 min (+ forno)',
+          difficulty: 'Média',
+          getSteps: (isTM7, mainIng) => [
+            { step: 1, action: 'Coloque a água, fermento de padeiro e azeite no copo.', min: '2 min', temp: '37°C', speed: 'Velocidade 2', notes: 'Ativação perfeita do fermento na temperatura corporal.' },
+            { step: 2, action: 'Adicione a farinha e o sal. Amasse no modo espiga.', min: '3 min', temp: '-', speed: 'Modo Espiga / Amassar', notes: 'Massa elástica, fofa e hidratada.' },
+            { step: 3, action: `Disponha num tabuleiro untado com azeite, afunde as pontas dos dedos e distribua ${mainIng} e alecrim.`, min: '2 min', temp: '-', speed: 'Manual', notes: 'Deixe levedar até duplicar de volume.' },
+            { step: 4, action: 'Regue com salmoura de água, azeite e flor de sal e leve ao forno pré-aquecido a 220°C.', min: '20 min no forno', temp: '-', speed: 'Manual', notes: 'Crosta dourada com miolo fofo e arejado.' }
+          ],
+          chefTip: 'O modo Espiga da Bimby mimetiza na perfeição a sova profissional de padeiro, desenvolvendo a rede de glúten ideal.'
+        }
+      ]
+    };
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('create');
+      const [mode, setMode] = useState('ingredients');
+      const [ingredientsText, setIngredientsText] = useState('');
+      const [recipeToAdaptText, setRecipeToAdaptText] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('pratos');
+      const [selectedBimbyModel, setSelectedBimbyModel] = useState('TM7');
+      const [cookingTime, setCookingTime] = useState('30');
+      const [servingsCount, setServingsCount] = useState('4');
+
+      const [isGenerating, setIsGenerating] = useState(false);
+      const [generatedRecipe, setGeneratedRecipe] = useState(null);
+      const [generationAttempt, setGenerationAttempt] = useState(1);
+      const [copiedLink, setCopiedLink] = useState(false);
+      const [errorMessage, setErrorMessage] = useState('');
+      const [toastMessage, setToastMessage] = useState('');
+      const [deleteModalId, setDeleteModalId] = useState(null);
+
+      const [savedRecipes, setSavedRecipes] = useState(() => {
+        try {
+          const local = localStorage.getItem('bimby_saved_recipes');
+          return local ? JSON.parse(local) : INITIAL_SAVED_RECIPES;
+        } catch {
+          return INITIAL_SAVED_RECIPES;
+        }
+      });
+      const [filterCategory, setFilterCategory] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [activeRecipeModal, setActiveRecipeModal] = useState(null);
+
+      const [settings, setSettings] = useState(() => {
+        try {
+          const local = localStorage.getItem('bimby_user_settings');
+          return local ? JSON.parse(local) : {
+            defaultModel: 'TM7',
+            apiKey: ''
+          };
+        } catch {
+          return { defaultModel: 'TM7', apiKey: '' };
+        }
+      });
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('bimby_saved_recipes', JSON.stringify(savedRecipes));
+        } catch (e) {
+          console.error(e);
+        }
+      }, [savedRecipes]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('bimby_user_settings', JSON.stringify(settings));
+        } catch (e) {
+          console.error(e);
+        }
+        if (settings.defaultModel) {
+          setSelectedBimbyModel(settings.defaultModel);
+        }
+      }, [settings]);
+
+      const showNotification = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(''), 3000);
+      };
+
+      const generateRecipeWithAI = async (isRetry = false) => {
+        if (mode === 'ingredients' && !ingredientsText.trim()) {
+          setErrorMessage('Por favor introduza pelo menos 2 ou 3 ingredientes!');
+          return;
+        }
+        if (mode === 'adapt' && !recipeToAdaptText.trim()) {
+          setErrorMessage('Por favor cole o texto da receita que deseja adaptar!');
+          return;
+        }
+
+        setErrorMessage('');
+        setIsGenerating(true);
+        const nextAttempt = isRetry ? generationAttempt + 1 : 1;
+        setGenerationAttempt(nextAttempt);
+
+        const lastRecipeTitle = generatedRecipe ? generatedRecipe.title : 'nenhuma';
+
+        const systemInstruction = `
+          És a Chef Margarida, conceituada Chef Executiva com mais de 20 anos de experiência gastronómica e especialista de topo na cozinha com robôs Thermomix Bimby (modelos TM31, TM5, TM6 e TM7).
+          REGRA DE OURO GASTRONÓMICA: Mantém rigor culinário absoluto e coerência de alta cozinha. NUNCA mistures hidratos de carbono incompatíveis de forma absurda (por exemplo: NUNCA faças risotto com massa, nem mistures arroz com massa no mesmo prato). Um risotto é confecionado exclusivamente com arroz próprio (Carnaroli ou Arbório); os pratos de massa usam exclusivamente massa de qualidade; cada receita deve ser harmoniosa, com passos técnicos realistas e proporções exatas para a Bimby.
+          DEVES DEVOLVER EXCLUSIVAMENTE UM OBJETO JSON VÁLIDO no seguinte formato:
+          {
+            "title": "Nome da Receita Gourmet",
+            "category": "${selectedCategory}",
+            "model": "${selectedBimbyModel}",
+            "prepTime": "Tempo estimado em min",
+            "servings": "${servingsCount} pessoas",
+            "difficulty": "Fácil | Média | Avançada",
+            "ingredients": ["lista de ingredientes com quantidades precisas"],
+            "steps": [
+              {
+                "step": 1,
+                "action": "Instrução clara para colocar no copo e preparar",
+                "min": "Tempo exato (ex: 5 seg, 10 min, 30 seg)",
+                "temp": "Temperatura exata (ex: - , 100°C, Varoma, 120°C)",
+                "speed": "Velocidade exata (ex: Vel 1, Vel 4, Vel Colher Inversa, Vel 10)",
+                "notes": "Dica prática sobre os acessórios"
+              }
+            ],
+            "chefTip": "Conselho de Chef para um acabamento perfeito."
+          }
+        `;
+
+        const userPrompt = mode === 'ingredients'
+          ? `Cria uma receita de "${selectedCategory}" para Bimby ${selectedBimbyModel} usando: "${ingredientsText}". Tempo limite: ${cookingTime} min. Porções: ${servingsCount}. TENTATIVA #${nextAttempt}. RECEITA A EVITAR (já sugerida antes): "${lastRecipeTitle}". IMPORTANTE: Apresenta uma proposta culinária e técnica TOTALMENTE DIFERENTE da anterior, com outro método de confção e outro perfil gastronómico!`
+          : `Adapta esta receita para Bimby ${selectedBimbyModel}. Categoria: "${selectedCategory}". Texto: "${recipeToAdaptText}". Variação #${nextAttempt}. RECEITA ANTERIOR A EVITAR: "${lastRecipeTitle}". Apresenta uma variação culinária distinta!`;
+
+        try {
+          if (!settings.apiKey) {
+            throw new Error("Modo local de contingência ativo");
+          }
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${settings.apiKey}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userPrompt }] }],
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
+
+          if (!response.ok) throw new Error('Erro na API');
+          const result = await response.json();
+          const rawJsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (rawJsonText) {
+            const parsedRecipe = JSON.parse(rawJsonText);
+            parsedRecipe.id = 'gen-' + Date.now();
+            setGeneratedRecipe(parsedRecipe);
+          } else {
+            throw new Error('Formato inválido');
+          }
+        } catch (err) {
+          // Motor de rotação local inteligente e rico em técnicas culinárias
+          const fallbackRecipe = generateDynamicFallbackRecipe(mode, ingredientsText, recipeToAdaptText, selectedCategory, selectedBimbyModel, nextAttempt);
+          setGeneratedRecipe(fallbackRecipe);
+        } finally {
+          setIsGenerating(false);
+        }
+      };
+
+      const generateDynamicFallbackRecipe = (m, ingText, adaptText, cat, model, attempt) => {
+        // TM5, TM6 e TM7 dispõem de 120°C, copo de 2.2L e inversão digital de lâmina (na TM31 o limite de refogado é 100°C)
+        const isTM7 = model !== 'TM31';
+        const categoryVariations = CULINARY_VARIATIONS[cat] || CULINARY_VARIATIONS['pratos'];
+        
+        // Seleciona uma variação diferente a cada tentativa em ciclo rotativo
+        const variationIndex = (attempt - 1) % categoryVariations.length;
+        const chosenVariation = categoryVariations[variationIndex];
+
+        // Extrai os ingredientes digitados pelo utilizador ou usa ingredientes ricos padrão
+        let userIngredients = [];
+        if (m === 'ingredients' && ingText.trim()) {
+          userIngredients = ingText
+            .split(/[,;\n]+/)
+            .map(i => i.trim())
+            .filter(i => i.length > 0);
+        } else if (m === 'adapt' && adaptText.trim()) {
+          userIngredients = adaptText
+            .split(/[,;\n]+/)
+            .map(i => i.trim().replace(/^[-*•\d.]+\s*/, ''))
+            .filter(i => i.length > 2)
+            .slice(0, 6);
+        }
+
+        // Filtro de coerência gastronómica: proíbe misturar hidratos incompatíveis (ex: massa em risotto, arroz em massa)
+        const isRiceDish = chosenVariation.style.includes('risotto');
+        const isPastaDish = chosenVariation.style.includes('massa') || chosenVariation.style.includes('pesto');
+
+        // Remove ingredientes incompatíveis com a técnica em curso
+        const culinaryCompatible = userIngredients.filter(ing => {
+          const l = ing.toLowerCase();
+          if (isRiceDish && (l.includes('massa') || l.includes('esparguete') || l.includes('macarrão') || l.includes('penne') || l.includes('tagliatelle'))) return false;
+          if (isPastaDish && l.includes('arroz')) return false;
+          return true;
+        });
+
+        // Ingredientes para o título: evita pleonasmos amadores como "Risotto de Arroz" ou "Massa de Massa"
+        const titleCandidates = culinaryCompatible.filter(ing => {
+          const l = ing.toLowerCase();
+          if (isRiceDish && l.includes('arroz')) return false;
+          if (isPastaDish && l.includes('massa')) return false;
+          return true;
+        });
+
+        const primaryIngredient = titleCandidates[0] || (isRiceDish ? 'Cogumelos Frescos' : isPastaDish ? 'Tomate Cereja e Manjericão' : (cat === 'sopas' ? 'Legumes da Época' : cat === 'sobremesas' ? 'Chocolate e Fruta' : 'Frango do Campo'));
+        const secondaryIngredient = titleCandidates[1] || (isRiceDish ? 'Parmesão Curado' : (cat === 'sopas' ? 'Batata Doce' : cat === 'sobremesas' ? 'Frutos Silvestres' : 'Legumes Frescos'));
+
+        // Garante ingredientes completos e realistas para a Bimby
+        let completeIngredientsList = [];
+        if (culinaryCompatible.length > 0) {
+          completeIngredientsList = culinaryCompatible.map(item => {
+            if (/^\d/.test(item)) return item;
+            return `300g de ${item}`;
+          });
+          if (cat === 'sopas' && !completeIngredientsList.some(i => i.includes('azeite'))) completeIngredientsList.push('50g azeite extra virgem', '700g água', 'Sal q.b.');
+          if (cat === 'pratos' && !completeIngredientsList.some(i => i.includes('azeite'))) completeIngredientsList.push('40g azeite', '1 cebola e 2 dentes de alho', '100g vinho branco ou caldo', 'Sal e pimenta q.b.');
+          if (cat === 'entradas' && !completeIngredientsList.some(i => i.includes('azeite'))) completeIngredientsList.push('30g azeite ou manteiga', 'Ervas aromáticas a gosto', 'Sal marinho');
+          if (cat === 'sobremesas' && !completeIngredientsList.some(i => i.includes('açúcar') || i.includes('acucar'))) completeIngredientsList.push('80g açúcar fino', '3 ovos ou 200g natas frescas');
+          if (cat === 'tapas' && !completeIngredientsList.some(i => i.includes('azeite'))) completeIngredientsList.push('50g azeite extra virgem', 'Dentes de alho', 'Pimentón doce ou picante', 'Sal q.b.');
+          if (cat === 'italiana' && !completeIngredientsList.some(i => i.includes('azeite') || i.includes('queijo'))) completeIngredientsList.push('40g azeite extra virgem', '80g Parmigiano Reggiano', 'Manjericão fresco', 'Sal marinho');
+        } else {
+          completeIngredientsList = cat === 'sopas'
+            ? ['400g batatas', '2 cenouras', '1 alho-francês', '50g azeite extra virgem', '750g água mineral', 'Sal marinho e coentros']
+            : cat === 'sobremesas'
+            ? ['200g chocolate culinário', '4 ovos M', '60g açúcar', '40g manteiga sem sal']
+            : cat === 'tapas'
+            ? ['400g batatas ou camarão', '4 dentes de alho', '60g azeite virgem extra', 'Pimentón doce', 'Salsa fresca picada', 'Sal fino']
+            : cat === 'italiana'
+            ? (isRiceDish
+                ? ['320g arroz Carnaroli ou Arbório', '80g Parmigiano Reggiano ralado', '1 chalota', '40g manteiga fria', '60g vinho branco seco', '750g caldo de legumes a ferver', '40g azeite virgem extra', 'Sal marinho']
+                : ['350g massa italiana de grano duro', '80g Parmigiano Reggiano', '2 dentes de alho', '50g azeite virgem extra', 'Manjericão fresco', 'Sal marinho'])
+            : ['500g proteína ou cogumelos', '1 cebola picada', '2 dentes de alho', '40g azeite', '100g vinho branco', 'Polpa de tomate e ervas finas'];
+        }
+
+        // Blindagem rigorosa de ingredientes técnicos para Risotto e Pratos de Massa
+        if (isRiceDish) {
+          // Garante exclusão absoluta de massas no Risotto
+          completeIngredientsList = completeIngredientsList.filter(i => {
+            const l = i.toLowerCase();
+            return !l.includes('massa') && !l.includes('esparguete') && !l.includes('macarrão') && !l.includes('penne') && !l.includes('tagliatelle');
+          });
+          if (!completeIngredientsList.some(i => i.toLowerCase().includes('arroz'))) {
+            completeIngredientsList.unshift('320g arroz para risotto (Carnaroli ou Arbório)');
+          }
+          if (!completeIngredientsList.some(i => i.toLowerCase().includes('caldo'))) {
+            completeIngredientsList.push('750g caldo de legumes quente');
+          }
+        } else if (isPastaDish) {
+          // Garante exclusão absoluta de arroz em pratos de massa
+          completeIngredientsList = completeIngredientsList.filter(i => !i.toLowerCase().includes('arroz'));
+          if (!completeIngredientsList.some(i => i.toLowerCase().includes('massa'))) {
+            completeIngredientsList.unshift('350g massa italiana de grano duro');
+          }
+        }
+
+        const recipeTitle = chosenVariation.titleGen(`${primaryIngredient} e ${secondaryIngredient}`);
+        const steps = chosenVariation.getSteps(isTM7, primaryIngredient);
+
+        return {
+          id: 'fb-' + Date.now() + '-' + attempt,
+          title: recipeTitle,
+          category: cat,
+          model: model,
+          prepTime: chosenVariation.prepTime,
+          servings: `${servingsCount} pessoas`,
+          difficulty: chosenVariation.difficulty,
+          ingredients: completeIngredientsList,
+          steps: steps,
+          chefTip: `${chosenVariation.chefTip} (Dica de Chef: Adaptada perfeitamente ao corte de lâmina da Bimby ${model}).`
+        };
+      };
+
+      const handleSaveRecipe = (recipe) => {
+        if (!recipe) return;
+        const exists = savedRecipes.some(r => r.title.toLowerCase() === recipe.title.toLowerCase());
+        if (exists) {
+          showNotification('Esta receita já se encontra guardada no seu Livro!');
+          return;
+        }
+        setSavedRecipes([recipe, ...savedRecipes]);
+        showNotification('Receita guardada com sucesso no seu Livro!');
+      };
+
+      const requestDeleteSavedRecipe = (id, e) => {
+        e.stopPropagation();
+        setDeleteModalId(id);
+      };
+
+      const confirmDeleteRecipe = () => {
+        if (!deleteModalId) return;
+        setSavedRecipes(savedRecipes.filter(r => r.id !== deleteModalId));
+        if (activeRecipeModal?.id === deleteModalId) {
+          setActiveRecipeModal(null);
+        }
+        setDeleteModalId(null);
+        showNotification('Receita removida do Livro.');
+      };
+
+      const handleShareRecipe = (recipe) => {
+        const textSummary = `🍳 *${recipe.title}* (Bimby ${recipe.model})\n\n` +
+          `⏱️ Tempo: ${recipe.prepTime} | 👥 Porções: ${recipe.servings}\n` +
+          `📖 Categoria: ${recipe.category.toUpperCase()}\n\n` +
+          `🛒 *Ingredientes:* \n${recipe.ingredients.map(i => `• ${i}`).join('\n')}\n\n` +
+          `👨‍🍳 *Criado com Chef Bimby AI*`;
+
+        if (navigator.share) {
+          navigator.share({ title: recipe.title, text: textSummary, url: window.location.href }).catch(() => {});
+        } else {
+          try {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textSummary;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            setCopiedLink(true);
+            showNotification('Resumo copiado para a área de transferência!');
+            setTimeout(() => setCopiedLink(false), 2500);
+          } catch (e) {
+            showNotification('Não foi possível copiar automaticamente.');
+          }
+        }
+      };
+
+      const filteredSavedRecipes = savedRecipes.filter(recipe => {
+        const matchesCategory = filterCategory === 'all' || recipe.category === filterCategory;
+        const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              recipe.ingredients.some(i => i.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesCategory && matchesSearch;
+      });
+
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col antialiased selection:bg-emerald-500 selection:text-white pb-20">
+          
+          {/* TOAST NOTIFICAÇÃO NÃO INTRUSIVA */}
+          {toastMessage && (
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-2.5 text-xs font-bold animate-fadeIn">
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* CABEÇALHO */}
+          <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm px-4 py-3">
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-green-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                  <ChefHat className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-emerald-700 via-teal-700 to-slate-800 dark:from-emerald-400 dark:to-slate-100 bg-clip-text text-transparent">
+                      Chef Bimby AI
+                    </h1>
+                    <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                      <Award className="w-3 h-3 text-amber-600" /> Master 20+
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+                    O seu Chef Michelin Especialista para Bimby TM31, TM5, TM6 & TM7
+                  </p>
+                </div>
+              </div>
+
+              {/* Seletor Rápido de Modelo */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-0.5">
+                {['TM31', 'TM5', 'TM6', 'TM7'].map((model) => {
+                  const isSelected = selectedBimbyModel === model;
+                  return (
+                    <button
+                      key={model}
+                      onClick={() => setSelectedBimbyModel(model)}
+                      className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1 ${
+                        isSelected
+                          ? model === 'TM7' || model === 'TM6'
+                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm'
+                            : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-600'
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      {model === 'TM7' ? (
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      ) : (
+                        <Zap className={`w-3.5 h-3.5 ${isSelected ? 'text-amber-500' : ''}`} />
+                      )}
+                      {model}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </header>
+
+          {}
+          <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6">
+            
+            {/* TAB 1: CRIAR RECEITA */}
+            {activeTab === 'create' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white p-6 sm:p-8 shadow-xl border border-slate-800">
+                  <div className="relative z-10 max-w-2xl space-y-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <ChefHat className="w-4 h-4 text-emerald-400" /> Consultoria Culinária Inteligente
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                      O que tem no seu frigorífico hoje?
+                    </h2>
+                    <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                      Eu sou a Chef Margarida. Diga-me os ingredientes disponíveis ou introduza uma receita tradicional, e eu crio um passo a passo exato otimizado para a sua <strong className="text-emerald-400">{selectedBimbyModel}</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 bg-slate-200/80 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-300/50 dark:border-slate-800">
+                  <button
+                    onClick={() => setMode('ingredients')}
+                    className={`py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
+                      mode === 'ingredients'
+                        ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    <Utensils className="w-4 h-4" />
+                    Ingredientes em Casa
+                  </button>
+                  <button
+                    onClick={() => setMode('adapt')}
+                    className={`py-3 px-4 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
+                      mode === 'adapt'
+                        ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-md'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    }`}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Adaptar Minha Receita
+                  </button>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+                      1. Selecione a Categoria do Prato:
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {CATEGORIES.map((cat) => {
+                        const IconComponent = cat.icon;
+                        const isSelected = selectedCategory === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedCategory(cat.id)}
+                            className={`p-3.5 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 text-center transition-all ${
+                              isSelected
+                                ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 shadow-sm scale-[1.02]'
+                                : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                            }`}
+                          >
+                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${cat.color} text-white flex items-center justify-center shadow-md`}>
+                              <IconComponent className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-bold">{cat.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {mode === 'ingredients' ? (
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label htmlFor="ingredientsInput" className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                          2. Ingredientes que tem disponíveis:
+                        </label>
+                        <span className="text-xs text-slate-400">Separe por vírgulas</span>
+                      </div>
+                      <textarea
+                        id="ingredientsInput"
+                        value={ingredientsText}
+                        onChange={(e) => setIngredientsText(e.target.value)}
+                        placeholder="Ex: 3 batatas, 1 cenoura, peito de frango, natas, alho, azeite, coentros..."
+                        rows={3}
+                        className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-sm outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label htmlFor="recipeToAdaptInput" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        2. Cole a Receita Tradicional a Adaptar:
+                      </label>
+                      <textarea
+                        id="recipeToAdaptInput"
+                        value={recipeToAdaptText}
+                        onChange={(e) => setRecipeToAdaptText(e.target.value)}
+                        placeholder="Cole aqui a receita de tacho/forno da sua avó. A Chef Margarida vai traduzi-la para velocidades, temperaturas e tempos da Bimby..."
+                        rows={4}
+                        className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all text-sm outline-none"
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label htmlFor="cookingTimeSelect" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Tempo Limite Desejado
+                      </label>
+                      <select
+                        id="cookingTimeSelect"
+                        value={cookingTime}
+                        onChange={(e) => setCookingTime(e.target.value)}
+                        className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="15">Rápido (até 15 minutos)</option>
+                        <option value="30">Normal (até 30 minutos)</option>
+                        <option value="45">Elaborado (até 45 minutos)</option>
+                        <option value="60">Sem limite de tempo</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="servingsSelect" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Nº de Pessoas / Porções
+                      </label>
+                      <select
+                        id="servingsSelect"
+                        value={servingsCount}
+                        onChange={(e) => setServingsCount(e.target.value)}
+                        className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="2">2 Pessoas</option>
+                        <option value="4">4 Pessoas</option>
+                        <option value="6">6 Pessoas</option>
+                        <option value="8">8+ Pessoas</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {errorMessage && (
+                    <div className="p-3.5 rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+                      <Info className="w-4 h-4 shrink-0" />
+                      {errorMessage}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => generateRecipeWithAI(false)}
+                    disabled={isGenerating}
+                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-base sm:text-lg shadow-lg shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-3 disabled:opacity-60 cursor-pointer"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>A Chef Margarida está a criar para Bimby {selectedBimbyModel}...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5 text-amber-300" />
+                        <span>Criar Receita de Chef para Bimby {selectedBimbyModel}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {}
+                {generatedRecipe && (
+                  <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-emerald-500/30 space-y-6 animate-slideUp">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                            Bimby {generatedRecipe.model}
+                          </span>
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            {generatedRecipe.difficulty}
+                          </span>
+                          {generationAttempt > 1 && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                              Sugestão #{generationAttempt}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                          {generatedRecipe.title}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => handleSaveRecipe(generatedRecipe)}
+                          className="p-3 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1.5 transition-all"
+                        >
+                          <Save className="w-4 h-4" /> Guardar
+                        </button>
+                        <button
+                          onClick={() => handleShareRecipe(generatedRecipe)}
+                          className="p-3 rounded-2xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 font-bold text-xs flex items-center gap-1.5 transition-all"
+                        >
+                          <Share2 className="w-4 h-4" /> {copiedLink ? 'Copiado!' : 'Partilhar'}
+                        </button>
+                        <button
+                          onClick={() => generateRecipeWithAI(true)}
+                          disabled={isGenerating}
+                          className="p-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                          title="Cria outra receita completamente diferente"
+                        >
+                          <RotateCcw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} /> 
+                          <span>Outra Ideia</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Metadados rápidos */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold">Tempo</p>
+                          <p className="text-sm font-bold">{generatedRecipe.prepTime}</p>
+                        </div>
+                      </div>
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                        <Users className="w-5 h-5 text-teal-600" />
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold">Porções</p>
+                          <p className="text-sm font-bold">{generatedRecipe.servings}</p>
+                        </div>
+                      </div>
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center gap-3 col-span-2 sm:col-span-1">
+                        <Flame className="w-5 h-5 text-amber-600" />
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold">Dificuldade</p>
+                          <p className="text-sm font-bold">{generatedRecipe.difficulty}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ingredientes */}
+                    <div>
+                      <h4 className="font-extrabold text-base mb-3 flex items-center gap-2">
+                        <Utensils className="w-4 h-4 text-emerald-600" /> Ingredientes Necessários:
+                      </h4>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        {generatedRecipe.ingredients.map((ing, idx) => (
+                          <li key={idx} className="text-xs font-semibold flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            {ing}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Passos de Preparação na Bimby */}
+                    <div>
+                      <h4 className="font-extrabold text-base mb-3 flex items-center gap-2">
+                        <ChefHat className="w-4 h-4 text-emerald-600" /> Passo a Passo Bimby ({generatedRecipe.model}):
+                      </h4>
+                      <div className="space-y-3">
+                        {generatedRecipe.steps.map((st) => (
+                          <div key={st.step} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-black text-xs px-2.5 py-1 rounded-lg bg-emerald-600 text-white">
+                                Passo {st.step}
+                              </span>
+                              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                {st.min && <span className="bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-md">⏱️ {st.min}</span>}
+                                {st.temp && <span className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 rounded-md">🌡️ {st.temp}</span>}
+                                {st.speed && <span className="bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 px-2 py-0.5 rounded-md">🌀 {st.speed}</span>}
+                              </div>
+                            </div>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+                              {st.action}
+                            </p>
+                            {st.notes && (
+                              <p className="text-xs italic text-slate-500 dark:text-slate-400">
+                                💡 Nota: {st.notes}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dica do Chef */}
+                    {generatedRecipe.chefTip && (
+                      <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-1">
+                        <span className="font-extrabold text-xs uppercase tracking-wider flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                          <Sparkles className="w-4 h-4" /> Segredo de Chef Margarida
+                        </span>
+                        <p className="text-xs sm:text-sm font-medium italic">
+                          "{generatedRecipe.chefTip}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {}
+            {activeTab === 'book' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-black">O Meu Livro de Receitas</h2>
+                    <p className="text-xs text-slate-500">
+                      {savedRecipes.length} receita(s) guardadas no navegador
+                    </p>
+                  </div>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Pesquisar receita ou ingrediente..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs w-full sm:w-64 outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {filteredSavedRecipes.length === 0 ? (
+                  <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <BookMarked className="w-12 h-12 text-slate-300 mx-auto" />
+                    <p className="text-sm font-bold text-slate-500">Nenhuma receita encontrada</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredSavedRecipes.map((rec) => (
+                      <div
+                        key={rec.id}
+                        onClick={() => setActiveRecipeModal(rec)}
+                        className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-4"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              Bimby {rec.model}
+                            </span>
+                            <button
+                              onClick={(e) => requestDeleteSavedRecipe(rec.id, e)}
+                              className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <h3 className="font-extrabold text-base leading-snug">{rec.title}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">
+                            Ingredientes: {rec.ingredients.join(', ')}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <span>⏱️ {rec.prepTime}</span>
+                          <span>👥 {rec.servings}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: DEFINIÇÕES */}
+            {activeTab === 'settings' && (
+              <div className="max-w-xl mx-auto space-y-6 animate-fadeIn">
+                <h2 className="text-2xl font-black">Definições da Aplicação</h2>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
+                      Modelo Bimby Padrão
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['TM31', 'TM5', 'TM6', 'TM7'].map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setSettings({ ...settings, defaultModel: m })}
+                          className={`p-3 rounded-xl font-bold text-xs border transition-all ${
+                            settings.defaultModel === m
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 shadow-sm'
+                              : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
+                      Chave API Gemini (Opcional)
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Cole aqui a sua chave Google Gemini API..."
+                      value={settings.apiKey}
+                      onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs bg-slate-50 dark:bg-slate-800 outline-none"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Se deixado em branco, o motor inteligente de contingência interna local gera rotações completas de receitas variadas com técnicas adaptadas para a TM31, TM5, TM6 e TM7.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {}
+          {/* MODAL DE DETALHES DE RECEITA */}
+          {activeRecipeModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-900 max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                      Bimby {activeRecipeModal.model}
+                    </span>
+                    <h3 className="text-2xl font-black mt-2">{activeRecipeModal.title}</h3>
+                  </div>
+                  <button
+                    onClick={() => setActiveRecipeModal(null)}
+                    className="p-2 text-slate-400 hover:text-slate-900 font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div>
+                  <h4 className="font-extrabold text-xs uppercase text-slate-400 mb-2">Ingredientes</h4>
+                  <ul className="list-disc list-inside text-xs space-y-1">
+                    {activeRecipeModal.ingredients.map((ing, i) => (
+                      <li key={i}>{ing}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-extrabold text-xs uppercase text-slate-400 mb-2">Passos Bimby</h4>
+                  <div className="space-y-2">
+                    {activeRecipeModal.steps.map((s) => (
+                      <div key={s.step} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs space-y-1">
+                        <span className="font-bold text-emerald-600">Passo {s.step}:</span> {s.action}
+                        <div className="text-[10px] text-slate-400">
+                          ⏱️ {s.min} | 🌡️ {s.temp} | 🌀 {s.speed}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {activeRecipeModal.chefTip && (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 text-xs text-amber-800 dark:text-amber-200 italic">
+                    💡 Dica do Chef: {activeRecipeModal.chefTip}
+                  </div>
+                )}
+
+                <div className="pt-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => handleShareRecipe(activeRecipeModal)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 font-bold text-xs flex items-center gap-1"
+                  >
+                    <Share2 className="w-4 h-4" /> Partilhar
+                  </button>
+                  <button
+                    onClick={() => setActiveRecipeModal(null)}
+                    className="px-6 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL DE CONFIRMAÇÃO DE ELIMINAÇÃO */}
+          {deleteModalId && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-900 max-w-sm w-full rounded-3xl p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 text-center animate-fadeIn">
+                <Trash2 className="w-10 h-10 text-rose-500 mx-auto" />
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">Eliminar receita?</h3>
+                <p className="text-xs text-slate-500">
+                  Tem a certeza de que deseja remover esta receita do seu Livro de Receitas?
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button
+                    onClick={() => setDeleteModalId(null)}
+                    className="py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmDeleteRecipe}
+                    className="py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700"
+                  >
+                    Sim, eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {}
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 py-2">
+            <div className="max-w-md mx-auto grid grid-cols-3 gap-1">
+              <button
+                onClick={() => setActiveTab('create')}
+                className={`py-2 flex flex-col items-center gap-1 rounded-xl transition-all ${
+                  activeTab === 'create' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'
+                }`}
+              >
+                <ChefHat className="w-5 h-5" />
+                <span className="text-[10px]">Criar</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('book')}
+                className={`py-2 flex flex-col items-center gap-1 rounded-xl transition-all ${
+                  activeTab === 'book' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'
+                }`}
+              >
+                <BookMarked className="w-5 h-5" />
+                <span className="text-[10px]">Livro ({savedRecipes.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`py-2 flex flex-col items-center gap-1 rounded-xl transition-all ${
+                  activeTab === 'settings' ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+                <span className="text-[10px]">Definições</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
